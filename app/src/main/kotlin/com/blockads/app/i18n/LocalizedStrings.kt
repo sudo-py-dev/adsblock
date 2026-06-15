@@ -8,6 +8,7 @@ interface LocalizedStrings {
 
     // Home screen
     val appName: String
+    val tileLabel: String
     val vpnActive: String
     val vpnStopped: String
     val vpnConnecting: String
@@ -21,6 +22,10 @@ interface LocalizedStrings {
     val privateDnsWarningTitle: String
     val privateDnsWarningMessage: String
     val privateDnsActionSettings: String
+
+    val batteryOptimizationWarningTitle: String
+    val batteryOptimizationWarningMessage: String
+    val batteryOptimizationActionSettings: String
 
     // Pause VPN
     val pauseVpn: String

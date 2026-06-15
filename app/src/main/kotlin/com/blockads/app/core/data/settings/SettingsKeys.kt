@@ -14,4 +14,7 @@ object SettingsKeys {
     val notifStatsKey = booleanPreferencesKey("notif_stats")
     val autoStartKey = booleanPreferencesKey("auto_start")
     val lastUpdatedMsKey = longPreferencesKey("blocklist_last_updated_ms")
+    val bypassedAppsKey = androidx.datastore.preferences.core.stringSetPreferencesKey("bypassed_apps")
+    val whitelistDomainsKey = androidx.datastore.preferences.core.stringSetPreferencesKey("whitelist_domains")
+    val blacklistDomainsKey = androidx.datastore.preferences.core.stringSetPreferencesKey("blacklist_domains")
 }

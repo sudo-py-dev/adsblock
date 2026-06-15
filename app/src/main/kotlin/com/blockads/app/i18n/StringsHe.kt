@@ -5,8 +5,9 @@ object StringsHe : LocalizedStrings {
     override val navSettings = "הגדרות"
     override val navAbout = "אודות"
 
-    override val appName = "חוסם פרסומות"
-    override val vpnActive = "הגנה פעילה"
+    override val appName = "BlockAds"
+    override val tileLabel = "BlockAds VPN"
+    override val vpnActive = "ההגנה פעילה"
     override val vpnStopped = "הגנה כבויה"
     override val vpnConnecting = "מתחבר…"
     override val vpnError = "שגיאת חיבור"
@@ -17,8 +18,12 @@ object StringsHe : LocalizedStrings {
     override val tapToStop = "הקש לכיבוי ההגנה"
     override val currentBlocklist = "רשימת חסימה"
     override val privateDnsWarningTitle = "זוהה DNS פרטי"
-    override val privateDnsWarningMessage = "DNS פרטי (Strict) מופעל במכשירך. זה עוקף את BlockAds ומונע חסימת פרסומות. אנא הגדר DNS פרטי ל-'אוטומטי' או 'כבוי' בהגדרות המכשיר."
+    override val privateDnsWarningMessage = "DNS פרטי קשיח פעיל במכשיר שלך. זה עוקף את BlockAds ומונע חסימת פרסומות. אנא הגדר את ה-DNS הפרטי למצב 'אוטומטי' או 'כבוי' בהגדרות המכשיר."
     override val privateDnsActionSettings = "פתח הגדרות"
+
+    override val batteryOptimizationWarningTitle = "אופטימיזציית סוללה"
+    override val batteryOptimizationWarningMessage = "אופטימיזציית סוללה פעילה עבור BlockAds. זה עלול לגרום לניתוק ה-VPN ברקע. אנא החרג את BlockAds מאופטימיזציית הסוללה."
+    override val batteryOptimizationActionSettings = "תקן עכשיו"
 
     override val pauseVpn = "השהה VPN"
     override val resumeVpn = "המשך"

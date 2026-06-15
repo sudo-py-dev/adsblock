@@ -34,6 +34,9 @@ class SettingsRepository
                     showNotificationStats = prefs[SettingsKeys.notifStatsKey] ?: true,
                     autoStartOnBoot = prefs[SettingsKeys.autoStartKey] ?: false,
                     blocklistLastUpdatedMs = prefs[SettingsKeys.lastUpdatedMsKey] ?: 0L,
+                    bypassedApps = prefs[SettingsKeys.bypassedAppsKey] ?: emptySet(),
+                    whitelistDomains = prefs[SettingsKeys.whitelistDomainsKey] ?: emptySet(),
+                    blacklistDomains = prefs[SettingsKeys.blacklistDomainsKey] ?: emptySet(),
                 )
             }
 
@@ -75,5 +78,17 @@ class SettingsRepository
 
         suspend fun setBlocklistLastUpdated(epochMs: Long) {
             dataStore.edit { it[SettingsKeys.lastUpdatedMsKey] = epochMs }
+        }
+
+        suspend fun setBypassedApps(apps: Set<String>) {
+            dataStore.edit { it[SettingsKeys.bypassedAppsKey] = apps }
+        }
+
+        suspend fun setWhitelistDomains(domains: Set<String>) {
+            dataStore.edit { it[SettingsKeys.whitelistDomainsKey] = domains }
+        }
+
+        suspend fun setBlacklistDomains(domains: Set<String>) {
+            dataStore.edit { it[SettingsKeys.blacklistDomainsKey] = domains }
         }
     }

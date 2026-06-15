@@ -8,8 +8,10 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.List
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -25,7 +27,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.blockads.app.i18n.LocalStrings
 import com.blockads.app.ui.about.AboutScreen
+import com.blockads.app.ui.apps.AppsScreen
 import com.blockads.app.ui.home.HomeScreen
+import com.blockads.app.ui.logs.LogsScreen
+import com.blockads.app.ui.rules.RulesScreen
 import com.blockads.app.ui.settings.SettingsScreen
 
 @Composable
@@ -63,7 +68,12 @@ fun AppNavGraph(
         },
     ) {
         composable<Home> { HomeScreen() }
-        composable<Settings> { SettingsScreen() }
+        composable<Logs> { LogsScreen() }
+        composable<Apps> { AppsScreen() }
+        composable<Rules> {
+            RulesScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable<Settings> { SettingsScreen(onNavigateToRules = { navController.navigate(Rules) }) }
         composable<About> { AboutScreen() }
     }
 }
@@ -80,6 +90,18 @@ fun AppBottomBar(navController: NavHostController) {
             onClick = { navController.navigate(Home) { launchSingleTop = true } },
             icon = { Icon(Icons.Rounded.Home, contentDescription = strings.navHome) },
             label = { Text(strings.navHome) },
+        )
+        NavigationBarItem(
+            selected = currentDest?.hasRoute<Logs>() == true,
+            onClick = { navController.navigate(Logs) { launchSingleTop = true } },
+            icon = { Icon(Icons.AutoMirrored.Rounded.List, contentDescription = "Logs") },
+            label = { Text("Logs") },
+        )
+        NavigationBarItem(
+            selected = currentDest?.hasRoute<Apps>() == true,
+            onClick = { navController.navigate(Apps) { launchSingleTop = true } },
+            icon = { Icon(Icons.AutoMirrored.Rounded.List, contentDescription = "Apps") },
+            label = { Text("Apps") },
         )
         NavigationBarItem(
             selected = currentDest?.hasRoute<Settings>() == true,

@@ -5,7 +5,8 @@ object StringsFr : LocalizedStrings {
     override val navSettings = "Paramètres"
     override val navAbout = "À propos"
 
-    override val appName = "Bloqueur de Pubs"
+    override val appName = "BlockAds"
+    override val tileLabel = "BlockAds VPN"
     override val vpnActive = "Protection active"
     override val vpnStopped = "Protection désactivée"
     override val vpnConnecting = "Connexion…"
@@ -17,10 +18,14 @@ object StringsFr : LocalizedStrings {
     override val tapToStop = "Appuyez pour désactiver la protection"
     override val currentBlocklist = "Liste de blocage"
     override val privateDnsWarningTitle = "DNS privé détecté"
-    override val privateDnsWarningMessage = "Un DNS privé strict est actif sur votre appareil. Cela contourne BlockAds et empêche le blocage des publicités. Veuillez définir le DNS privé sur 'Automatique' ou 'Désactivé' dans les paramètres de votre appareil."
+    override val privateDnsWarningMessage = "Un DNS privé strict est actif sur votre appareil. Cela remplace BlockAds et empêche le blocage des publicités. Veuillez régler le DNS privé sur 'Automatique' ou 'Désactivé' dans les paramètres de votre appareil."
     override val privateDnsActionSettings = "Ouvrir les paramètres"
 
-    override val pauseVpn = "Mettre en pause"
+    override val batteryOptimizationWarningTitle = "Optimisation de la batterie"
+    override val batteryOptimizationWarningMessage = "L'optimisation de la batterie est active pour BlockAds. Cela peut entraîner la déconnexion du VPN en arrière-plan. Veuillez exclure BlockAds de l'optimisation de la batterie."
+    override val batteryOptimizationActionSettings = "Réparer maintenant"
+
+    override val pauseVpn = "Mettre le VPN en pause"
     override val resumeVpn = "Reprendre"
     override val pauseFor15m = "15 minutes"
     override val pauseFor1h = "1 heure"

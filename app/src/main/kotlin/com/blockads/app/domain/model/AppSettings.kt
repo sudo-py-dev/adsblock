@@ -12,6 +12,9 @@ data class AppSettings(
     val showNotificationStats: Boolean = true,
     val autoStartOnBoot: Boolean = false,
     val blocklistLastUpdatedMs: Long = 0L,
+    val bypassedApps: Set<String> = emptySet(),
+    val whitelistDomains: Set<String> = emptySet(),
+    val blacklistDomains: Set<String> = emptySet(),
 ) {
     companion object {
         fun default(): AppSettings = AppSettings()

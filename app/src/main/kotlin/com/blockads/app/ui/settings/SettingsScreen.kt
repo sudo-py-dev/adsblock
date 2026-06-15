@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.VpnKey
 import androidx.compose.material3.CircularProgressIndicator
@@ -61,7 +62,10 @@ private val URL_REGEX =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(
+    onNavigateToRules: () -> Unit = {},
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
     val strings = LocalStrings.current
     val settings by viewModel.settings.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
@@ -257,6 +261,28 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                             }
                         }
                     }
+                }
+            }
+
+            item {
+                Surface(
+                    modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.sm),
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                ) {
+                    ListItem(
+                        headlineContent = { Text("Custom Rules", style = MaterialTheme.typography.titleMedium) },
+                        supportingContent = { Text("Manage whitelist and blacklist domains", style = MaterialTheme.typography.bodyMedium) },
+                        leadingContent = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.List,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        },
+                        colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                        modifier = Modifier.clickable { onNavigateToRules() },
+                    )
                 }
             }
 

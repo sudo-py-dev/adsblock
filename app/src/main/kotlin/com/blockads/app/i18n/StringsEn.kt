@@ -6,6 +6,7 @@ object StringsEn : LocalizedStrings {
     override val navAbout = "About"
 
     override val appName = "BlockAds"
+    override val tileLabel = "BlockAds VPN"
     override val vpnActive = "Protection Active"
     override val vpnStopped = "Protection Off"
     override val vpnConnecting = "Connecting…"
@@ -19,6 +20,10 @@ object StringsEn : LocalizedStrings {
     override val privateDnsWarningTitle = "Private DNS Detected"
     override val privateDnsWarningMessage = "A strict Private DNS is active on your device. This overrides BlockAds and prevents ad blocking. Please set Private DNS to 'Automatic' or 'Off' in your device settings."
     override val privateDnsActionSettings = "Open Settings"
+
+    override val batteryOptimizationWarningTitle = "Battery Optimization"
+    override val batteryOptimizationWarningMessage = "Battery optimization is active for BlockAds. This may cause the VPN to disconnect in the background. Please exclude BlockAds from battery optimization."
+    override val batteryOptimizationActionSettings = "Fix Now"
 
     override val pauseVpn = "Pause VPN"
     override val resumeVpn = "Resume"

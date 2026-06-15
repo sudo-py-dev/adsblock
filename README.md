@@ -11,6 +11,10 @@ BlockAds is a fast, lightweight, and incredibly secure ad-blocking application f
 
 ## ✨ Features
 * **Zero-Setup Ad Blocking**: Just tap "Connect" and enjoy an ad-free web.
+* **Quick Settings Tile**: Toggle BlockAds instantly right from your Android notification shade.
+* **App Whitelisting (Split Tunneling)**: Seamlessly bypass the VPN for specific apps like banking or streaming services.
+* **Live DNS Query Log**: View every single domain your device requests in real-time, complete with `<Allowed>` or `<Blocked>` status indicators.
+* **Custom Rules Engine**: Take full control by adding custom domains to your personal Whitelist or Blacklist.
 * **Pause When You Need To**: Need to access a blocked site temporarily? Pause the blocker for a customized amount of time, and it will automatically resume.
 * **100% Local Privacy**: The VPN is entirely local. We don't route your traffic to external servers or collect your data.
 * **Beautiful Material You Design**: A gorgeous, modern interface with seamless Light and Dark mode support that adapts to your system.

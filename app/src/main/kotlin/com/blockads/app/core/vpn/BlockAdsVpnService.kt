@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat
 import com.blockads.app.MainActivity
 import com.blockads.app.core.data.blocklist.BlocklistRepository
 import com.blockads.app.core.data.blocklist.BlocklistSource
+import com.blockads.app.core.data.dns.DnsLogRepository
 import com.blockads.app.core.data.dns.DnsPacketParser
 import com.blockads.app.core.data.dns.DnsResolver
 import com.blockads.app.core.data.dns.DnsResponseBuilder
@@ -53,9 +54,13 @@ class BlockAdsVpnService : VpnService() {
 
     @Inject lateinit var dnsResolver: DnsResolver
 
+    @Inject lateinit var dnsLogRepository: DnsLogRepository
+
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var tunFd: ParcelFileDescriptor? = null
     private var statsJob: Job? = null
+
+    @Volatile private var currentSettings: AppSettings = AppSettings.default()
 
     companion object {
         const val ACTION_START = "com.blockads.app.START_VPN"
@@ -131,6 +136,12 @@ class BlockAdsVpnService : VpnService() {
         startForeground(NOTIF_ID, buildNotification(0L))
 
         scope.launch {
+            settingsRepository.appSettings.collect { settings ->
+                currentSettings = settings
+            }
+        }
+
+        scope.launch {
             val settings = settingsRepository.appSettings.first()
             val loadResult = blocklistRepository.refresh(settings.blocklistSource)
             if (loadResult.isFailure) {
@@ -142,7 +153,7 @@ class BlockAdsVpnService : VpnService() {
                     tunFd = fd
                     _vpnState.value = VpnState.ACTIVE
                     startStatsNotificationUpdater(settings)
-                    runPacketLoop(fd, settings)
+                    runPacketLoop(fd)
                 }
                 .onFailure { e ->
                     Log.e(TAG, "Failed to establish VPN tunnel", e)
@@ -153,28 +164,33 @@ class BlockAdsVpnService : VpnService() {
     }
 
     private fun establishTun(settings: AppSettings): ParcelFileDescriptor {
-        return Builder()
-            .addAddress(VPN_ADDRESS, 32)
-            .addAddress("fd00:33:33::1", 128)
-            .addDnsServer(VPN_DNS)
-            .addDnsServer("fd00:33:33::1")
-            .addRoute("0.0.0.0", 0)
-            .addRoute("::", 0)
-            .setMtu(MTU)
-            .setSession("BlockAds")
-            .establish() ?: error("VpnService.Builder.establish() returned null")
+        val builder =
+            Builder()
+                .addAddress(VPN_ADDRESS, 32)
+                .addAddress("fd00:33:33::1", 128)
+                .addDnsServer(VPN_DNS)
+                .addDnsServer("fd00:33:33::1")
+                .addRoute(VPN_DNS, 32)
+                .addRoute("fd00:33:33::1", 128)
+                .setMtu(MTU)
+                .setSession("BlockAds")
+
+        builder.addDisallowedApplication(packageName)
+        settings.bypassedApps.forEach { pkg ->
+            try {
+                builder.addDisallowedApplication(pkg)
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to bypass app: $pkg", e)
+            }
+        }
+
+        return builder.establish() ?: error("VpnService.Builder.establish() returned null")
     }
 
-    private suspend fun runPacketLoop(
-        fd: ParcelFileDescriptor,
-        settings: AppSettings,
-    ) {
+    private suspend fun runPacketLoop(fd: ParcelFileDescriptor) {
         val input = FileInputStream(fd.fileDescriptor)
         val output = FileOutputStream(fd.fileDescriptor)
         val buffer = ByteArray(MTU)
-
-        val primary = settings.blocklistSource.upstreamDns?.first ?: settings.dnsPrimary
-        val secondary = settings.blocklistSource.upstreamDns?.second ?: settings.dnsSecondary
 
         while (scope.isActive && (_vpnState.value == VpnState.ACTIVE || _vpnState.value == VpnState.PAUSED)) {
             try {
@@ -187,15 +203,36 @@ class BlockAdsVpnService : VpnService() {
 
                 if (!isIpv4 && !isIpv6) continue
 
-                val protocol: Int
-                val ihl: Int
+                var protocol: Int
+                var ihl: Int
                 if (isIpv4) {
                     protocol = buffer[9].toInt() and 0xFF
                     ihl = (buffer[0].toInt() and 0x0F) * 4
                 } else {
-                    // IPv6 fixed header is 40 bytes. Next Header is at offset 6.
-                    protocol = buffer[6].toInt() and 0xFF
-                    ihl = 40
+                    // IPv6 handling with potential extension headers
+                    var nextHeader = buffer[6].toInt() and 0xFF
+                    var offset = 40
+
+                    while (offset < len) {
+                        if (nextHeader == 17) break // UDP found
+
+                        // Handle common extension headers: Hop-by-Hop (0), Routing (43),
+                        // Fragment (44), Destination Options (60)
+                        if (nextHeader == 0 || nextHeader == 43 || nextHeader == 60) {
+                            if (offset + 8 > len) break
+                            val extLen = (buffer[offset + 1].toInt() and 0xFF + 1) * 8
+                            nextHeader = buffer[offset].toInt() and 0xFF
+                            offset += extLen
+                        } else if (nextHeader == 44) { // Fragment
+                            if (offset + 8 > len) break
+                            nextHeader = buffer[offset].toInt() and 0xFF
+                            offset += 8
+                        } else {
+                            break // Unknown or non-skippable header
+                        }
+                    }
+                    protocol = nextHeader
+                    ihl = offset
                 }
 
                 if (protocol != 17) continue // UDP only
@@ -213,17 +250,29 @@ class BlockAdsVpnService : VpnService() {
                 when (val result = DnsPacketParser.parseQuery(dnsQuery)) {
                     is ParseResult.Success -> {
                         val isPaused = _vpnState.value == VpnState.PAUSED && System.currentTimeMillis() < pauseUntilMs
+                        val domain = result.domain
+
+                        val isWhitelisted = currentSettings.whitelistDomains.contains(domain)
+                        val isBlacklisted = currentSettings.blacklistDomains.contains(domain)
+
+                        val shouldBlock = !isPaused && !isWhitelisted && (isBlacklisted || blocklistRepository.isDomainBlocked(domain))
+
                         val dnsResponse =
-                            if (!isPaused && blocklistRepository.isDomainBlocked(result.domain)) {
+                            if (shouldBlock) {
                                 _stats.update { it.copy(blockedCount = it.blockedCount + 1) }
+                                dnsLogRepository.logQuery(domain, true)
                                 DnsResponseBuilder.nxdomain(result.txId, dnsQuery)
                             } else {
                                 _stats.update { it.copy(forwardedCount = it.forwardedCount + 1) }
+                                dnsLogRepository.logQuery(domain, false)
+
+                                val primary = currentSettings.blocklistSource.upstreamDns?.first ?: currentSettings.dnsPrimary
+                                val secondary = currentSettings.blocklistSource.upstreamDns?.second ?: currentSettings.dnsSecondary
                                 dnsResolver.forward(dnsQuery, primary, secondary)
                             }
 
                         if (dnsResponse != null) {
-                            val ipResponse = wrapInIpUdp(buffer, len, dnsResponse, isIpv4)
+                            val ipResponse = wrapInIpUdp(buffer, len, ihl, dnsResponse, isIpv4)
                             if (ipResponse != null) {
                                 output.write(ipResponse)
                             }
@@ -341,50 +390,52 @@ class BlockAdsVpnService : VpnService() {
     private fun wrapInIpUdp(
         originalPacket: ByteArray,
         originalLen: Int,
+        originalIhl: Int,
         dnsPayload: ByteArray,
         isIpv4: Boolean,
     ): ByteArray? {
-        val ihl = if (isIpv4) (originalPacket[0].toInt() and 0x0F) * 4 else 40
+        val responseIhl = if (isIpv4) 20 else 40
         val udpLen = 8 + dnsPayload.size
-        val ipLen = ihl + udpLen
+        val ipLen = responseIhl + udpLen
         val packet = ByteArray(ipLen)
 
         if (isIpv4) {
-            System.arraycopy(originalPacket, 0, packet, 0, ihl)
+            System.arraycopy(originalPacket, 0, packet, 0, 20)
+            packet[0] = 0x45 // Version 4, IHL 5
             packet[2] = (ipLen shr 8).toByte()
             packet[3] = (ipLen and 0xFF).toByte()
             // Swap source and dest IP
             System.arraycopy(originalPacket, 12, packet, 16, 4)
             System.arraycopy(originalPacket, 16, packet, 12, 4)
-            packet[10] = 0 // Clear checksum for simplicity (OS will often fix or ignore if small)
+            packet[10] = 0 // Clear checksum for simplicity
             packet[11] = 0
         } else {
-            System.arraycopy(originalPacket, 0, packet, 0, ihl)
-            val payloadLen = udpLen
-            packet[4] = (payloadLen shr 8).toByte()
-            packet[5] = (payloadLen and 0xFF).toByte()
-            // Swap source and dest IPv6 addresses (16 bytes each)
+            System.arraycopy(originalPacket, 0, packet, 0, 40)
+            packet[4] = (udpLen shr 8).toByte()
+            packet[5] = (udpLen and 0xFF).toByte()
+            packet[6] = 17 // Next Header: UDP
+            // Swap source and dest IPv6 addresses
             System.arraycopy(originalPacket, 8, packet, 24, 16)
             System.arraycopy(originalPacket, 24, packet, 8, 16)
         }
 
-        // Swap ports
-        packet[ihl] = originalPacket[ihl + 2]
-        packet[ihl + 1] = originalPacket[ihl + 3]
-        packet[ihl + 2] = originalPacket[ihl]
-        packet[ihl + 3] = originalPacket[ihl + 1]
+        // Swap ports using originalIhl
+        packet[responseIhl] = originalPacket[originalIhl + 2]
+        packet[responseIhl + 1] = originalPacket[originalIhl + 3]
+        packet[responseIhl + 2] = originalPacket[originalIhl]
+        packet[responseIhl + 3] = originalPacket[originalIhl + 1]
 
-        packet[ihl + 4] = (udpLen shr 8).toByte()
-        packet[ihl + 5] = (udpLen and 0xFF).toByte()
-        packet[ihl + 6] = 0
-        packet[ihl + 7] = 0
+        packet[responseIhl + 4] = (udpLen shr 8).toByte()
+        packet[responseIhl + 5] = (udpLen and 0xFF).toByte()
+        packet[responseIhl + 6] = 0
+        packet[responseIhl + 7] = 0
 
-        System.arraycopy(dnsPayload, 0, packet, ihl + 8, dnsPayload.size)
+        System.arraycopy(dnsPayload, 0, packet, responseIhl + 8, dnsPayload.size)
 
-        // Calculate UDP checksum (mandatory for IPv6, optional but good for IPv4)
-        val checksum = calculateUdpChecksum(packet, ihl, isIpv4)
-        packet[ihl + 6] = (checksum shr 8).toByte()
-        packet[ihl + 7] = (checksum and 0xFF).toByte()
+        // Calculate UDP checksum
+        val checksum = calculateUdpChecksum(packet, responseIhl, isIpv4)
+        packet[responseIhl + 6] = (checksum shr 8).toByte()
+        packet[responseIhl + 7] = (checksum and 0xFF).toByte()
 
         return packet
     }

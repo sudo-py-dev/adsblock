@@ -6,12 +6,12 @@ import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.blockads.app.core.data.settings.SettingsRepository
+import com.blockads.app.core.util.DnsSettingsHelper
 import com.blockads.app.core.vpn.BlockAdsVpnService
 import com.blockads.app.domain.model.AppSettings
 import com.blockads.app.domain.model.DnsStats
 import com.blockads.app.domain.model.VpnState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import com.blockads.app.core.util.DnsSettingsHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -39,6 +39,14 @@ class HomeViewModel
                 while (true) {
                     emit(DnsSettingsHelper.isPrivateDnsStrict(application))
                     delay(3000)
+                }
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+        val isBatteryOptimized: StateFlow<Boolean> =
+            flow {
+                while (true) {
+                    emit(!DnsSettingsHelper.isIgnoringBatteryOptimizations(application))
+                    delay(5000)
                 }
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 

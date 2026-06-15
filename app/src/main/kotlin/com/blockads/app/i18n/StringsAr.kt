@@ -5,7 +5,8 @@ object StringsAr : LocalizedStrings {
     override val navSettings = "الإعدادات"
     override val navAbout = "حول"
 
-    override val appName = "مانع الإعلانات"
+    override val appName = "BlockAds"
+    override val tileLabel = "BlockAds VPN"
     override val vpnActive = "الحماية نشطة"
     override val vpnStopped = "الحماية معطلة"
     override val vpnConnecting = "جارٍ الاتصال…"
@@ -16,11 +17,15 @@ object StringsAr : LocalizedStrings {
     override val tapToStart = "انقر لتمكين الحماية"
     override val tapToStop = "انقر لتعطيل الحماية"
     override val currentBlocklist = "قائمة الحظر"
-    override val privateDnsWarningTitle = "تم اكتشاف DNS خاص"
-    override val privateDnsWarningMessage = "تم تفعيل DNS خاص (Strict) على جهازك. هذا يتجاوز BlockAds ويمنع حظر الإعلانات. يرجى ضبط DNS الخاص على 'تلقائي' أو 'إيقاف' في إعدادات جهازك."
+    override val privateDnsWarningTitle = "تم اكتشاف نظام DNS خاص"
+    override val privateDnsWarningMessage = "يوجد نظام DNS خاص صارم نشط على جهازك. هذا يتجاوز BlockAds ويمنع حظر الإعلانات. يرجى ضبط نظام DNS الخاص على 'تلقائي' أو 'إيقاف' في إعدادات جهازك."
     override val privateDnsActionSettings = "افتح الإعدادات"
 
-    override val pauseVpn = "إيقاف مؤقت للشبكة"
+    override val batteryOptimizationWarningTitle = "تحسين البطارية"
+    override val batteryOptimizationWarningMessage = "تحسين البطارية نشط لـ BlockAds. قد يتسبب هذا في فصل VPN في الخلفية. يرجى استثناء BlockAds من تحسين البطارية."
+    override val batteryOptimizationActionSettings = "الإصلاح الآن"
+
+    override val pauseVpn = "إيقاف VPN مؤقتاً"
     override val resumeVpn = "استئناف"
     override val pauseFor15m = "15 دقيقة"
     override val pauseFor1h = "ساعة واحدة"

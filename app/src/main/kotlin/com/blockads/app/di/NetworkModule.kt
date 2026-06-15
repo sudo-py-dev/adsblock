@@ -18,7 +18,7 @@ object NetworkModule {
     fun provideOkHttpClient(): OkHttpClient {
         val logging =
             HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.HEADERS
+                level = HttpLoggingInterceptor.Level.NONE
             }
         return OkHttpClient.Builder()
             .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS)) // no cleartext
