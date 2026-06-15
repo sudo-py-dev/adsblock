@@ -25,6 +25,7 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0.0"
+        buildConfigField("String", "GITHUB_REPO_URL", "\"https://github.com/sudo-py-dev/BLockAds.git\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

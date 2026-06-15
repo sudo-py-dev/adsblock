@@ -158,7 +158,7 @@ fun AboutScreen() {
                         },
                         modifier =
                             Modifier.clickable {
-                                uriHandler.openUri("https://github.com/blockads-app/blockads")
+                                uriHandler.openUri(BuildConfig.GITHUB_REPO_URL)
                             },
                     )
                     HorizontalDivider()
@@ -180,7 +180,8 @@ fun AboutScreen() {
                         },
                         modifier =
                             Modifier.clickable {
-                                uriHandler.openUri("https://github.com/blockads-app/blockads/issues")
+                                val issuesUrl = BuildConfig.GITHUB_REPO_URL.removeSuffix(".git") + "/issues"
+                                uriHandler.openUri(issuesUrl)
                             },
                     )
                 }
