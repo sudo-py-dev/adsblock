@@ -2,6 +2,7 @@ package com.blockads.vpn.service
 
 import android.net.VpnService
 import com.blockads.vpn.data.DnsLogManager
+import com.blockads.vpn.data.DnsProviders
 import com.blockads.vpn.data.DnsStatsManager
 import com.blockads.vpn.util.Logger
 import kotlinx.coroutines.CoroutineScope
@@ -34,8 +35,8 @@ class DnsTunnel(
 
     @Volatile
     var isFallbackActive = false
-    private var consecutiveTimeouts = 0
-    private val timeoutThreshold = 5
+    private var lastSuccessTime = System.currentTimeMillis()
+    private var fallbackStartTime = 0L
     private val fallbackAddress = InetAddress.getByName("94.140.14.14") // AdGuard DNS
 
     // Track pending DNS requests: Transaction ID -> ClientInfo
@@ -70,46 +71,8 @@ class DnsTunnel(
 
                         val responseLen = udpPacket.length
                         if (responseLen >= 2) {
-                            val txId = ByteBuffer.wrap(recvBuffer, 0, 2).getShort()
-                            val clientInfo = requestMap.remove(txId)
-                            if (clientInfo != null) {
-                                consecutiveTimeouts = 0 // Reset timeouts on successful response
-                                val payload = recvBuffer.copyOfRange(0, responseLen)
-
-                                try {
-                                    val message = Message(payload)
-                                    val rcode = message.header.rcode
-                                    if (rcode == Rcode.NXDOMAIN) {
-                                        DnsStatsManager.incrementBlocked()
-                                        DnsLogManager.addLog(clientInfo.domain, true)
-                                    } else {
-                                        var isBlocked = false
-                                        if (!isPaused) {
-                                            val answers = message.getSection(Section.ANSWER)
-                                            for (record in answers) {
-                                                if (record is ARecord && record.address.hostAddress == "0.0.0.0") {
-                                                    isBlocked = true
-                                                    break
-                                                }
-                                            }
-                                            if (isBlocked) DnsStatsManager.incrementBlocked()
-                                        }
-                                        DnsLogManager.addLog(clientInfo.domain, isBlocked)
-                                    }
-                                } catch (e: Exception) {
-                                    if (isRunning) Logger.w("DnsTunnel", "Failed to parse upstream response", e)
-                                }
-
-                                val responsePacket =
-                                    IpUtil.buildUdpIpPacket(
-                                        sourceIp = clientInfo.destIp,
-                                        destIp = clientInfo.sourceIp,
-                                        sourcePort = clientInfo.destPort,
-                                        destPort = clientInfo.sourcePort,
-                                        payload = payload,
-                                    )
-                                tunOutput.write(responsePacket)
-                            }
+                            val payload = recvBuffer.copyOfRange(0, responseLen)
+                            processDnsResponse(payload, tunOutput)
                         }
                     } catch (e: Exception) {
                         if (isRunning) Logger.e("DnsTunnel", "Error receiving from upstream", e)
@@ -121,20 +84,28 @@ class DnsTunnel(
             launch(Dispatchers.Default) {
                 while (isRunning) {
                     val now = System.currentTimeMillis()
-                    var timeoutsInThisTick = 0
+                    var hadTimeout = false
                     val iter = requestMap.iterator()
                     while (iter.hasNext()) {
                         val entry = iter.next()
                         if (now - entry.value.timestamp > 3000) { // 3 seconds timeout
                             iter.remove()
-                            timeoutsInThisTick++
+                            hadTimeout = true
                         }
                     }
-                    if (timeoutsInThisTick > 0 && !isFallbackActive) {
-                        consecutiveTimeouts += timeoutsInThisTick
-                        if (consecutiveTimeouts >= timeoutThreshold) {
-                            isFallbackActive = true
-                            onFallbackStateChanged?.invoke(true)
+                    
+                    if (hadTimeout && !isFallbackActive) {
+                        // Only verify health if we haven't had a successful response in the last 4 seconds
+                        if (now - lastSuccessTime > 4000) {
+                            val isAlive = checkUpstreamHealth()
+                            if (!isAlive) {
+                                isFallbackActive = true
+                                fallbackStartTime = System.currentTimeMillis()
+                                onFallbackStateChanged?.invoke(true)
+                            } else {
+                                // Upstream is alive, update success time to prevent immediate re-testing
+                                lastSuccessTime = System.currentTimeMillis()
+                            }
                         }
                     }
                     kotlinx.coroutines.delay(1000)
@@ -145,29 +116,15 @@ class DnsTunnel(
             launch(Dispatchers.IO) {
                 while (isRunning) {
                     if (isFallbackActive) {
-                        try {
-                            val testSocket = DatagramSocket()
-                            vpnService.protect(testSocket)
-                            testSocket.soTimeout = 2000
-                            
-                            val record = org.xbill.DNS.Record.newRecord(org.xbill.DNS.Name.fromString("google.com."), org.xbill.DNS.Type.A, org.xbill.DNS.DClass.IN)
-                            val query = org.xbill.DNS.Message.newQuery(record)
-                            val queryBytes = query.toWire()
-                            
-                            val packet = DatagramPacket(queryBytes, queryBytes.size, upstreamAddress, 53)
-                            testSocket.send(packet)
-                            
-                            val responseBuf = ByteArray(1024)
-                            val respPacket = DatagramPacket(responseBuf, responseBuf.size)
-                            testSocket.receive(respPacket)
-                            
-                            isFallbackActive = false
-                            consecutiveTimeouts = 0
-                            onFallbackStateChanged?.invoke(false)
-                            
-                            testSocket.close()
-                        } catch (e: Exception) {
-                            // Still down
+                        val now = System.currentTimeMillis()
+                        // Require at least 30 seconds in fallback mode to prevent rapid flapping
+                        if (now - fallbackStartTime > 30_000) {
+                            val isAlive = checkUpstreamHealth()
+                            if (isAlive) {
+                                isFallbackActive = false
+                                lastSuccessTime = System.currentTimeMillis()
+                                onFallbackStateChanged?.invoke(false)
+                            }
                         }
                     }
                     kotlinx.coroutines.delay(if (isFallbackActive) 10000 else 1000)
@@ -178,7 +135,7 @@ class DnsTunnel(
                 try {
                     val length = tunInput.read(buffer)
                     if (length > 0) {
-                        handlePacket(buffer, length, udpSocket)
+                        handlePacket(buffer, length, udpSocket, tunOutput)
                     }
                 } catch (e: Exception) {
                     if (isRunning) Logger.e("DnsTunnel", "Error reading TUN", e)
@@ -196,6 +153,7 @@ class DnsTunnel(
         packet: ByteArray,
         length: Int,
         udpSocket: DatagramSocket,
+        tunOutput: FileOutputStream,
     ) {
         if (length < 28) return // IP header + UDP header min size
         val buffer = ByteBuffer.wrap(packet, 0, length)
@@ -244,6 +202,77 @@ class DnsTunnel(
             val outPacket = DatagramPacket(payload, payloadLen, outAddress, 53)
             withContext(Dispatchers.IO) {
                 udpSocket.send(outPacket)
+            }
+        }
+    }
+
+    private suspend fun checkUpstreamHealth(): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val testSocket = DatagramSocket()
+            vpnService.protect(testSocket)
+            testSocket.soTimeout = 2000
+            
+            val record = org.xbill.DNS.Record.newRecord(org.xbill.DNS.Name.fromString("google.com."), org.xbill.DNS.Type.A, org.xbill.DNS.DClass.IN)
+            val query = org.xbill.DNS.Message.newQuery(record)
+            val queryBytes = query.toWire()
+            
+            val packet = DatagramPacket(queryBytes, queryBytes.size, upstreamAddress, 53)
+            testSocket.send(packet)
+            
+            val responseBuf = ByteArray(1024)
+            val respPacket = DatagramPacket(responseBuf, responseBuf.size)
+            testSocket.receive(respPacket)
+            
+            testSocket.close()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun processDnsResponse(payload: ByteArray, tunOutput: FileOutputStream) {
+        if (payload.size < 2) return
+        val txId = ByteBuffer.wrap(payload, 0, 2).getShort()
+        val clientInfo = requestMap.remove(txId)
+        if (clientInfo != null) {
+            lastSuccessTime = System.currentTimeMillis()
+
+            try {
+                val message = Message(payload)
+                val rcode = message.header.rcode
+                if (rcode == Rcode.NXDOMAIN) {
+                    DnsStatsManager.incrementBlocked()
+                    DnsLogManager.addLog(clientInfo.domain, true)
+                } else {
+                    var isBlocked = false
+                    if (!isPaused) {
+                        val answers = message.getSection(Section.ANSWER)
+                        for (record in answers) {
+                            if (record is ARecord && record.address.hostAddress == "0.0.0.0") {
+                                isBlocked = true
+                                break
+                            }
+                        }
+                        if (isBlocked) DnsStatsManager.incrementBlocked()
+                    }
+                    DnsLogManager.addLog(clientInfo.domain, isBlocked)
+                }
+            } catch (e: Exception) {
+                if (isRunning) Logger.w("DnsTunnel", "Failed to parse upstream response", e)
+            }
+
+            val responsePacket =
+                IpUtil.buildUdpIpPacket(
+                    sourceIp = clientInfo.destIp,
+                    destIp = clientInfo.sourceIp,
+                    sourcePort = clientInfo.destPort,
+                    destPort = clientInfo.sourcePort,
+                    payload = payload,
+                )
+            try {
+                tunOutput.write(responsePacket)
+            } catch (e: Exception) {
+                if (isRunning) Logger.e("DnsTunnel", "Error writing to TUN", e)
             }
         }
     }

@@ -9,6 +9,12 @@ object DnsProviders {
             "Control D (Ad Block)" to "76.76.2.2",
             "Mullvad (Ad Block)" to "194.242.2.3",
             "Mullvad (Ad & Tracker Block)" to "194.242.2.4",
+            "AdGuard Family 2" to "94.140.15.16",
+            "Cloudflare Security (Malware)" to "1.1.1.2",
+            "Cloudflare Family (Malware + Adult)" to "1.1.1.3",
+            "CleanBrowsing (Family)" to "185.228.168.168",
+            "CleanBrowsing (Adult)" to "185.228.168.10",
+            "Quad9 (Malware Block)" to "9.9.9.9",
             "Alternate DNS" to "76.76.19.19",
             "Alternate DNS 2" to "76.76.20.20",
         )
