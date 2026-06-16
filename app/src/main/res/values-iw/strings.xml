@@ -1,4 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">חוסם פרסומות</string>
+    <string name="app_name">BlockAds</string>
+    <string name="vpn_connected">ה-VPN מחובר</string>
+    <string name="vpn_disconnected">ה-VPN מנותק</string>
+    <string name="tap_to_connect">הקש להתחברות</string>
+    <string name="tap_to_disconnect">הקש לניתוק</string>
+    
+    <string name="nav_home">ראשי</string>
+    <string name="nav_settings">הגדרות</string>
+    <string name="nav_about">אודות</string>
+
+    <string name="settings_title">הגדרות</string>
+    <string name="setting_dns_provider">ספק DNS</string>
+    <string name="setting_theme">ערכת נושא</string>
+    <string name="setting_language">שפה</string>
+    
+    <string name="theme_system">ברירת מחדל של המערכת</string>
+    <string name="theme_light">בהיר</string>
+    <string name="theme_dark">כהה</string>
+    
+    <string name="language_system">ברירת מחדל של המערכת</string>
+    <string name="language_en">אנגלית</string>
+    <string name="language_iw">עברית</string>
+    <string name="language_ru">רוסית</string>
+    <string name="language_fr">צרפתית</string>
+    
+    <string name="setting_query_logs">יומני שאילתות</string>
+    <string name="setting_query_logs_desc">צפה בשאילתות DNS אחרונות</string>
+    <string name="logs_title">יומני שאילתות</string>
+    <string name="logs_clear">נקה</string>
+    <string name="logs_blocked">נחסם</string>
+    <string name="logs_allowed">אושר</string>
+    <string name="logs_empty">אין עדיין שאילתות</string>
+
+    <string name="about_title">אודות BlockAds</string>
+    <string name="about_version">גרסה: %1$s</string>
+    <string name="about_developer">פותח על ידי: ed apps</string>
+    <string name="about_github">מאגר GitHub</string>
+    <string name="about_licenses_title">רישיונות קוד פתוח</string>
+    <string name="about_licenses_desc">אפליקציה זו משתמשת בתוכנות קוד פתוח: DnsJava, Jetpack Compose, Kotlin Coroutines, Ktor.</string>
+    
+    <string name="crash_title">אופס! משהו השתבש.</string>
+    <string name="crash_subtitle">האפליקציה קרסה במפתיע. אנו מתנצלים על אי הנוחות.</string>
+    <string name="crash_restart_app">הפעל מחדש את האפליקציה</string>
+    
+    <string name="stats_queries">שאילתות</string>
+    <string name="stats_blocked">נחסמו</string>
+    <string name="search_dns">חפש DNS</string>
+    <string name="desc_vpn_shield">מגן VPN</string>
+    <string name="desc_select_dns">בחר DNS</string>
+    <string name="desc_dropdown_open">פתח תפריט</string>
+    <string name="desc_crash_icon">סמל קריסה</string>
+    <string name="desc_app_logo">לוגו האפליקציה</string>
+    <string name="notification_vpn_title">BlockAds VPN</string>
+    <string name="notification_vpn_text">VPN חוסם פרסומות פעיל</string>
+    <string name="notification_channel_name">שירות VPN</string>
+
+    <string name="btn_pause">השהה</string>
+    <string name="btn_resume">המשך</string>
+    <string name="pause_duration_5m">5 דקות</string>
+    <string name="pause_duration_15m">15 דקות</string>
+    <string name="pause_duration_1h">שעה 1</string>
+    <string name="notification_paused_title">BlockAds VPN (מושהה)</string>
+    <string name="notification_paused_text">חסימת הפרסומות מושהית.</string>
 </resources>

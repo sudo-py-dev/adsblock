@@ -1,38 +1,37 @@
 import java.util.Properties
-import java.io.FileInputStream
-
-plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.ksp)
-}
 
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
-    localProperties.load(FileInputStream(localPropertiesFile))
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
-    namespace = "com.blockads.app"
-    compileSdk = 36
+    namespace = "com.blockads.vpn"
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.blockads.app"
+        applicationId = "com.blockads.vpn"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
-        versionName = "1.0.0"
-        buildConfigField("String", "GITHUB_REPO_URL", "\"https://github.com/sudo-py-dev/BLockAds.git\"")
+        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file(localProperties.getProperty("STORE_FILE") ?: "release-key.keystore")
+            storeFile = file(localProperties.getProperty("STORE_FILE") ?: "release.keystore")
             storePassword = localProperties.getProperty("KEYSTORE_PASSWORD") ?: ""
             keyAlias = localProperties.getProperty("KEY_ALIAS") ?: ""
             keyPassword = localProperties.getProperty("KEY_PASSWORD") ?: ""
@@ -41,95 +40,64 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
-        debug {
-            isDebuggable = true
-            applicationIdSuffix = ".debug"
-        }
     }
-
-    buildFeatures {
-        compose = true
-        buildConfig = true
-    }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
-    kotlin {
-        jvmToolchain(17)
+    kotlinOptions {
+        jvmTarget = "17"
     }
-
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
-            excludes += "META-INF/LICENSE*.md"
-        }
-    }
-
-    testOptions {
-        unitTests.all { test ->
-            test.useJUnitPlatform()
         }
     }
 }
 
 dependencies {
-    // Compose BOM — all compose versions aligned here
-    val composeBom = platform(libs.compose.bom)
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
+    implementation("androidx.activity:activity-compose:1.9.0")
+    
+    // Compose BOM
+    val composeBom = platform("androidx.compose:compose-bom:2026.05.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
-    implementation(libs.compose.material3)
-    implementation(libs.compose.ui)
-    implementation(libs.compose.ui.tooling.preview)
-    implementation(libs.compose.material.icons.ext)
-    implementation(libs.compose.ui.google.fonts)
-    debugImplementation(libs.compose.ui.tooling)
-    debugImplementation(libs.compose.ui.test.manifest)
-    androidTestImplementation(libs.compose.ui.test.junit4)
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+    
+    // DataStore for Settings
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    
+    // DnsJava for packet parsing
+    implementation("dnsjava:dnsjava:3.5.3")
+    
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
-    // AndroidX
-    implementation(libs.activity.compose)
-    implementation(libs.lifecycle.viewmodel.compose)
-    implementation(libs.lifecycle.runtime.ktx)
-    implementation(libs.navigation.compose)
-    implementation(libs.hilt.navigation.compose)
-
-    // Hilt — KSP (not KAPT)
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-
-    // OkHttp BOM
-    implementation(platform(libs.okhttp.bom))
-    implementation(libs.okhttp)
-    implementation(libs.okhttp.logging)
-
-    // Coroutines + Serialization
-    implementation(libs.coroutines.android)
-    implementation(libs.serialization.json)
-
-    // DataStore Preferences
-    implementation(libs.datastore.preferences)
-
-    // Unit testing
-    testImplementation(kotlin("reflect"))
-    testImplementation(libs.mockk)
-    testImplementation(libs.turbine)
-    testImplementation(libs.coroutines.test)
-    testImplementation(libs.junit5.api)
-    testImplementation(libs.junit5.params)
-    testRuntimeOnly(libs.junit5.engine)
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation(libs.hilt.testing)
-    kspTest(libs.hilt.compiler)
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

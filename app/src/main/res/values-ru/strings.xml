@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BlockAds</string>
+    <string name="vpn_connected">VPN подключен</string>
+    <string name="vpn_disconnected">VPN отключен</string>
+    <string name="tap_to_connect">Нажмите для подключения</string>
+    <string name="tap_to_disconnect">Нажмите для отключения</string>
+    
+    <string name="nav_home">Главная</string>
+    <string name="nav_settings">Настройки</string>
+    <string name="nav_about">О приложении</string>
+
+    <string name="settings_title">Настройки</string>
+    <string name="setting_dns_provider">Провайдер DNS</string>
+    <string name="setting_theme">Тема</string>
+    <string name="setting_language">Язык</string>
+    
+    <string name="theme_system">Системная</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Темная</string>
+    
+    <string name="language_system">Системный</string>
+    <string name="language_en">Английский</string>
+    <string name="language_iw">Иврит</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_fr">Французский</string>
+    
+    <string name="setting_query_logs">Журналы запросов</string>
+    <string name="setting_query_logs_desc">Просмотр недавних запросов DNS</string>
+    <string name="logs_title">Журналы</string>
+    <string name="logs_clear">Очистить</string>
+    <string name="logs_blocked">Заблокировано</string>
+    <string name="logs_allowed">Разрешено</string>
+    <string name="logs_empty">Пока нет запросов</string>
+
+    <string name="about_title">О BlockAds</string>
+    <string name="about_version">Версия: %1$s</string>
+    <string name="about_developer">Разработчик: ed apps</string>
+    <string name="about_github">Репозиторий GitHub</string>
+    <string name="about_licenses_title">Лицензии открытого ПО</string>
+    <string name="about_licenses_desc">Это приложение использует открытое ПО: DnsJava, Jetpack Compose, Kotlin Coroutines, Ktor.</string>
+    
+    <string name="crash_title">Ой! Что-то пошло не так.</string>
+    <string name="crash_subtitle">Приложение неожиданно завершило работу. Приносим извинения за неудобства.</string>
+    <string name="crash_restart_app">Перезапустить приложение</string>
+
+    <string name="stats_queries">Запросы</string>
+    <string name="stats_blocked">Заблокировано</string>
+    <string name="search_dns">Поиск DNS</string>
+    <string name="desc_vpn_shield">Щит VPN</string>
+    <string name="desc_select_dns">Выбрать DNS</string>
+    <string name="desc_dropdown_open">Открыть меню</string>
+    <string name="desc_crash_icon">Иконка ошибки</string>
+    <string name="desc_app_logo">Логотип приложения</string>
+    <string name="notification_vpn_title">BlockAds VPN</string>
+    <string name="notification_vpn_text">VPN блокировщик рекламы активен</string>
+    <string name="notification_channel_name">Служба VPN</string>
+
+    <string name="btn_pause">Пауза</string>
+    <string name="btn_resume">Возобновить</string>
+    <string name="pause_duration_5m">5 Минут</string>
+    <string name="pause_duration_15m">15 Минут</string>
+    <string name="pause_duration_1h">1 Час</string>
+    <string name="notification_paused_title">BlockAds VPN (Пауза)</string>
+    <string name="notification_paused_text">Блокировка рекламы приостановлена.</string>
+</resources>
