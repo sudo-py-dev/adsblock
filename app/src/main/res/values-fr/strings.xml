@@ -89,5 +89,7 @@
     <string name="protocol_doh">DNS-over-HTTPS</string>
     <string name="protocol_dot">DNS-over-TLS</string>
     <string name="desc_open_logs">Ouvrir les journaux</string>
-    <string name="desc_back">Retour</string>
+    <string name="desc_back">Retour</string>    <string name="about_privacy_title">Politique de confidentialité et avertissement</string>
+    <string name="about_privacy_policy">Cette application ne collecte, n\'enregistre ni ne partage vos données personnelles ou vos requêtes DNS. Tout le trafic DNS est chiffré et envoyé directement à votre fournisseur DNS. Les services DNS fournis dans cette application sont détenus et exploités par des tiers (ex: AdGuard, Cloudflare). Nous n\'assumons aucune responsabilité quant à leurs pratiques de confidentialité. Veuillez consulter leurs politiques de confidentialité respectives.</string>
+
 </resources>

@@ -89,5 +89,7 @@
     <string name="protocol_doh">DNS-over-HTTPS</string>
     <string name="protocol_dot">DNS-over-TLS</string>
     <string name="desc_open_logs">פתח יומנים</string>
-    <string name="desc_back">חזור</string>
+    <string name="desc_back">חזור</string>    <string name="about_privacy_title">מדיניות פרטיות והצהרת אחריות</string>
+    <string name="about_privacy_policy">אפליקציה זו אינה אוספת, רושמת או משתפת את הנתונים האישיים או שאילתות ה-DNS שלך. כל תעבורת ה-DNS מוצפנת ונשלחת ישירות לספק ה-DNS שבחרת. שירותי ה-DNS המסופקים באפליקציה זו נמצאים בבעלות ומופעלים על ידי צדדים שלישיים (כגון AdGuard, Cloudflare). איננו לוקחים אחריות על נוהלי הפרטיות שלהם. אנא עיין במדיניות הפרטיות של כל ספק.</string>
+
 </resources>

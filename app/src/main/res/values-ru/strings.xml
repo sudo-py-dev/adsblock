@@ -89,5 +89,7 @@
     <string name="protocol_doh">DNS-over-HTTPS</string>
     <string name="protocol_dot">DNS-over-TLS</string>
     <string name="desc_open_logs">Открыть журналы</string>
-    <string name="desc_back">Назад</string>
+    <string name="desc_back">Назад</string>    <string name="about_privacy_title">Политика конфиденциальности и отказ от ответственности</string>
+    <string name="about_privacy_policy">Это приложение не собирает, не регистрирует и не передает ваши личные данные или DNS-запросы. Весь DNS-трафик зашифрован и отправляется напрямую выбранному вами провайдеру. DNS-сервисы, предоставляемые в этом приложении, принадлежат и управляются третьими лицами (например, AdGuard, Cloudflare). Мы не несем ответственности за их методы обеспечения конфиденциальности. Пожалуйста, ознакомьтесь с их соответствующими политиками конфиденциальности.</string>
+
 </resources>

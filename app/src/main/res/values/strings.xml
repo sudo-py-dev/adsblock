@@ -91,5 +91,7 @@
     <string name="protocol_dot">DNS-over-TLS</string>
     <string name="desc_open_logs">Open Logs</string>
     <string name="desc_back">Back</string>
+    <string name="about_privacy_title">Privacy Policy &amp; Disclaimer</string>
+    <string name="about_privacy_policy">This app does not collect, log, or share any of your personal data or DNS queries. All DNS traffic is encrypted and sent directly to your chosen DNS provider. The DNS services provided in this app are owned and operated by third parties (e.g., AdGuard, Cloudflare). We do not own, control, or take responsibility for their privacy practices. Please review their respective privacy policies.</string>
 
 </resources>
